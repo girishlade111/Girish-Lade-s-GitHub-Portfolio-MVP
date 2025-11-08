@@ -1,19 +1,19 @@
 # Girish Lade's GitHub Portfolio
 
-This repository contains the source code for my personal portfolio website. It's a modern, responsive, and dynamic single-page application designed to showcase my GitHub profile, pinned projects, and contributions in a visually appealing way.
+This repository contains the source code for my personal portfolio website. It's a modern, responsive, and fast single-page application designed to showcase my GitHub profile, pinned projects, and contributions in a visually appealing way.
 
-The entire portfolio is built to be data-driven, pulling most of the information directly from the GitHub API in real-time.
+The portfolio is built with static data to ensure maximum reliability and performance, avoiding issues with API rate limits and ensuring the site is always available.
 
 ---
 
 ## ✨ Key Features
 
-*   **Dynamic GitHub Stats:** Automatically fetches and displays real-time statistics like stars earned, total commits, PRs, issues, and public repositories.
-*   **Pinned Projects Showcase:** Fetches data for pinned repositories, including descriptions, stars, forks, primary language, and last update time.
+*   **Curated Stats & Projects:** Displays key statistics and a hand-picked selection of pinned projects to highlight my most important work.
 *   **Live Contribution Graph:** Embeds the GitHub contributions chart for a visual overview of my activity.
 *   **Interactive UI:** Features a typing animation for my roles, project filtering by technology, and smooth hover effects.
 *   **Responsive Design:** A mobile-first approach ensures a seamless experience across all devices, from phones to desktops.
 *   **Modern Aesthetics:** Utilizes a sleek dark theme with "glassmorphism" card effects and a subtle background pattern.
+*   **High Performance:** By using static data, the site loads instantly without relying on external API calls during runtime.
 
 ---
 
@@ -22,7 +22,6 @@ The entire portfolio is built to be data-driven, pulling most of the information
 *   **Framework:** [React](https://react.dev/) with [TypeScript](https://www.typescriptlang.org/)
 *   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
 *   **Icons:** [Lucide React](https://lucide.dev/)
-*   **API:** [GitHub REST API](https://docs.github.com/en/rest)
 *   **Font:** [Inter](https://fonts.google.com/specimen/Inter) & [JetBrains Mono](https://fonts.google.com/specimen/JetBrains+Mono)
 
 ---
@@ -37,27 +36,23 @@ Start by forking this repository to your own GitHub account.
 
 ### 2. **Update Personal Information**
 
-Most of the personal data and configuration is centralized. To adapt the portfolio for your profile, you'll need to update the GitHub username `girishlade111` across the project.
+All personal data and configuration are centralized for easy editing. To adapt the portfolio for your profile, follow these steps:
 
-*   **`constants.tsx`**:
-    *   Update the `PROJECTS` array with your own pinned repositories. The script will fetch data based on the `githubUrl`.
+*   **`constants.tsx`**: This is the main configuration file.
+    *   Update the `STATS` array with your own GitHub statistics.
+    *   Update the `PROJECTS` array with your own pinned repositories. You can get details like stars and forks from your repository pages.
     *   Update the `SOCIAL_LINKS` array with your own social media URLs.
-    *   The `STATS` array provides the initial structure and fallback values. The GitHub API calls in `AboutSection.tsx` will update these values dynamically.
 
 *   **`components/HeroSection.tsx`**:
-    *   Change the username in the `fetchGitHubAPI('/users/girishlade111')` call to fetch your avatar.
+    *   Change the `avatarUrl` to the URL of your GitHub profile picture (e.g., `https://github.com/your-username.png`).
     *   Update the `ROLES` array to reflect your skills and titles.
     *   Update the main heading and subheading with your name and bio.
 
 *   **`components/AboutSection.tsx`**:
-    *   Replace all instances of `girishlade111` in the API calls with your GitHub username.
-    *   Update the "About Me" paragraph.
-
-*   **`components/ProjectsSection.tsx`**:
-    *   Update the API endpoint from `/repos/girishlade111/...` to use your username.
+    *   Update the "About Me" paragraph with your own introduction.
 
 *   **`components/ContributionsSection.tsx`**:
-    *   Change the username in the `src` URL for the GitHub contributions chart.
+    *   Change the username `girishlade111` in the `src` URL for the GitHub contributions chart to your own.
 
 *   **`index.html`**:
     *   Update the `<title>` tag with your name.

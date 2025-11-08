@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { fetchGitHubAPI } from '../utils/api';
 
 const ROLES = [
   "UX/UI Designer",
@@ -12,21 +11,7 @@ const HeroSection: React.FC = () => {
   const [roleIndex, setRoleIndex] = useState(0);
   const [displayedRole, setDisplayedRole] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    const getAvatar = async () => {
-      try {
-        const data = await fetchGitHubAPI('/users/girishlade111');
-        if (data.avatar_url) {
-          setAvatarUrl(data.avatar_url);
-        }
-      } catch (error) {
-        console.error("Failed to fetch avatar:", error);
-      }
-    };
-    getAvatar();
-  }, []);
+  const avatarUrl = "https://github.com/girishlade111.png";
 
   useEffect(() => {
     const handleTyping = () => {
@@ -54,13 +39,11 @@ const HeroSection: React.FC = () => {
   return (
     <section id="home" className="flex flex-col items-center text-center min-h-[60vh] justify-center">
       <div className="w-36 h-36 rounded-full border-4 border-gray-700 shadow-lg mb-6 bg-gray-800">
-        {avatarUrl && (
-          <img
-            src={avatarUrl}
-            alt="Girish Balaso Lade"
-            className="w-full h-full rounded-full object-cover"
-          />
-        )}
+        <img
+          src={avatarUrl}
+          alt="Girish Balaso Lade"
+          className="w-full h-full rounded-full object-cover"
+        />
       </div>
       <h1 className="text-4xl md:text-6xl font-bold text-white mb-3">
         Girish Balaso Lade

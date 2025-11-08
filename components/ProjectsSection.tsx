@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { PROJECTS } from '../constants';
 import type { Project } from '../types';
-import { Github, ExternalLink, Star, GitBranch, Clock, AlertTriangle } from 'lucide-react';
-import { fetchGitHubAPI } from '../utils/api';
+import { Github, ExternalLink, Star, GitBranch, Clock, Search } from 'lucide-react';
 
 const timeAgo = (dateString: string): string => {
     const date = new Date(dateString);
@@ -66,7 +66,7 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
         {project.updatedAt && (
              <span className="flex items-center gap-1" title={`Last updated: ${new Date(project.updatedAt).toLocaleString()}`}>
                 <Clock className="w-4 h-4" />
-                Updated {timeAgo(project.updatedAt)}
+                Last updated {timeAgo(project.updatedAt)}
             </span>
         )}
     </div>
@@ -81,110 +81,40 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
   </div>
 );
 
-const ProjectCardSkeleton: React.FC = () => (
-    <div className="glass-card rounded-lg p-6 flex flex-col h-full animate-pulse">
-        <div className="flex justify-between items-start mb-4">
-            <div className="h-6 bg-gray-700/50 rounded w-3/4"></div>
-            <div className="h-5 w-5 bg-gray-700/50 rounded"></div>
-        </div>
-        <div className="h-4 bg-gray-700/50 rounded w-full mb-2"></div>
-        <div className="h-4 bg-gray-700/50 rounded w-5/6 mb-4"></div>
-        
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-400 mb-4">
-            <div className="h-4 bg-gray-700/50 rounded w-20"></div>
-            <div className="h-4 bg-gray-700/50 rounded w-16"></div>
-            <div className="h-4 bg-gray-700/50 rounded w-16"></div>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-            <div className="h-5 bg-gray-700/50 rounded-full w-16"></div>
-            <div className="h-5 bg-gray-700/50 rounded-full w-20"></div>
-            <div className="h-5 bg-gray-700/50 rounded-full w-24"></div>
-        </div>
-    </div>
-);
-
-
 const ProjectsSection: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
-  const [filters, setFilters] = useState<string[]>(['All']);
   const [activeFilter, setActiveFilter] = useState<string>('All');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const projectPromises = PROJECTS.map(p => {
-          const repoName = p.githubUrl.split('/').pop();
-          return fetchGitHubAPI(`/repos/girishlade111/${repoName}`);
-        });
-
-        const results = await Promise.allSettled(projectPromises);
-
-        let didAnyFail = false;
-        const updatedProjects = PROJECTS.map((p, i) => {
-          const result = results[i];
-          if (result.status === 'fulfilled') {
-            const repo = result.value;
-            return {
-              ...p,
-              description: repo.description || p.description,
-              stars: repo.stargazers_count,
-              forks: repo.forks_count,
-              language: repo.language,
-              updatedAt: repo.updated_at,
-              liveUrl: repo.homepage || p.liveUrl,
-            };
-          } else {
-            const reasonMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
-            console.error(`Could not fetch data for project "${p.name}". Reason:`, reasonMessage);
-            didAnyFail = true;
-            return p; // Fallback to the original static project data
-          }
-        });
-
-        if (didAnyFail) {
-          setError("Could not fetch latest data for some projects. Displaying cached versions where needed.");
-        }
-        
-        setProjects(updatedProjects);
-        setFilteredProjects(updatedProjects);
-
-        const uniqueFilters = new Set<string>();
-        updatedProjects.forEach(p => {
-            if (p.language) uniqueFilters.add(p.language);
-            p.tags.forEach(t => uniqueFilters.add(t));
-        });
-        setFilters(['All', ...Array.from(uniqueFilters).sort()]);
-
-      } catch (err) {
-        const error = err as Error;
-        console.error("An unexpected error occurred while fetching projects:", error.message);
-        setError("Could not fetch latest project data. Displaying cached versions.");
-        setProjects(PROJECTS);
-        setFilteredProjects(PROJECTS);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProjects();
+  const filters = useMemo(() => {
+    const uniqueFilters = new Set<string>();
+    PROJECTS.forEach(p => {
+        if (p.language) uniqueFilters.add(p.language);
+        p.tags.forEach(t => uniqueFilters.add(t));
+    });
+    return ['All', ...Array.from(uniqueFilters).sort()];
   }, []);
 
-  useEffect(() => {
-    if (activeFilter === 'All') {
-      setFilteredProjects(projects);
-    } else {
-      const newFilteredProjects = projects.filter(p => 
+  const filteredProjects = useMemo(() => {
+    let projectsToFilter = PROJECTS;
+
+    // Apply category filter
+    if (activeFilter !== 'All') {
+      projectsToFilter = projectsToFilter.filter(p => 
         p.tags.includes(activeFilter) || p.language === activeFilter
       );
-      setFilteredProjects(newFilteredProjects);
     }
-  }, [activeFilter, projects]);
+    
+    // Apply search filter
+    if (searchTerm.trim() !== '') {
+        const lowercasedSearchTerm = searchTerm.toLowerCase();
+        projectsToFilter = projectsToFilter.filter(p => 
+            p.name.toLowerCase().includes(lowercasedSearchTerm) ||
+            p.description.toLowerCase().includes(lowercasedSearchTerm)
+        );
+    }
+
+    return projectsToFilter;
+  }, [activeFilter, searchTerm]);
 
   return (
     <section id="projects" className="flex flex-col items-center">
@@ -192,39 +122,40 @@ const ProjectsSection: React.FC = () => {
         Pinned Projects
       </h2>
       
-      {error && (
-        <div className="glass-card rounded-lg p-4 mb-8 text-yellow-300/90 border border-yellow-400/30 flex items-center gap-3 w-full max-w-4xl" role="alert">
-          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-          <p className="text-sm">{error}</p>
+      <div className="w-full max-w-4xl mb-8 flex flex-col gap-6">
+        <div className="relative w-full">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00AEEF]/50 transition-colors duration-300"
+          />
         </div>
-      )}
-
-      {!isLoading && filters.length > 1 && (
-        <div className="flex flex-wrap justify-center gap-2 mb-10">
-          {filters.map(filter => (
-            <button
-              key={filter}
-              onClick={() => setActiveFilter(filter)}
-              className={`px-4 py-1.5 rounded-full text-sm font-jetbrains transition-all duration-200 border ${
-                activeFilter === filter
-                  ? 'bg-[#00AEEF] text-[#0D1117] border-[#00AEEF]'
-                  : 'bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-[#00AEEF]/20 hover:border-[#00AEEF]/50'
-              }`}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
-      )}
+        {filters.length > 1 && (
+          <div className="flex flex-wrap justify-center gap-2">
+            {filters.map(filter => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-4 py-1.5 rounded-full text-sm font-jetbrains transition-all duration-200 border ${
+                  activeFilter === filter
+                    ? 'bg-[#00AEEF] text-[#0D1117] border-[#00AEEF]'
+                    : 'bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-[#00AEEF]/20 hover:border-[#00AEEF]/50'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <ProjectCardSkeleton key={i} />)
-        ) : (
-          filteredProjects.map((project) => (
-            <ProjectCard key={project.name} project={project} />
-          ))
-        )}
+        {filteredProjects.map((project) => (
+          <ProjectCard key={project.name} project={project} />
+        ))}
       </div>
     </section>
   );
