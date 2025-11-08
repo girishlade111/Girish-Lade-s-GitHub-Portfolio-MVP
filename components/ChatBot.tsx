@@ -3,6 +3,30 @@ import { MessageSquare, X, Send, Loader2, Link } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { marked } from 'marked';
 import type { ChatMessage, GroundingSource } from '../types';
+import { PROJECTS, STATS, SOCIAL_LINKS } from '../constants';
+
+const portfolioContext = {
+  name: "Girish Balaso Lade",
+  bio: "UX/UI Designer & Developer obsessed with building stuff people actually use... for free.",
+  roles: [
+    "UX/UI Designer",
+    "AI Agent Builder",
+    "Open Source Developer",
+    "Startup Founder",
+  ],
+  about: "I’m Girish Balaso Lade — a developer, designer, and AI enthusiast passionate about creating open-source tools and modern web experiences. I love mixing creativity with code to bring design to life.",
+  projects: PROJECTS.map(({ name, description, longDescription, tags, language, githubUrl, liveUrl }) => ({
+    name,
+    description: longDescription || description,
+    tags,
+    language,
+    githubUrl,
+    liveUrl,
+  })),
+  stats: STATS.map(s => ({ label: s.label, value: s.value })),
+  socials: SOCIAL_LINKS.map(s => ({ name: s.name, url: s.url })),
+};
+
 
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,10 +69,19 @@ const ChatBot: React.FC = () => {
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+
+      const prompt = `You are an AI assistant for the portfolio website of Girish Balaso Lade. Your goal is to answer questions about him, his skills, and his projects based on the context provided below. Be friendly, concise, and helpful. If the information is not in the context, you can use the search tool to find an answer.
+
+**Portfolio Context:**
+${JSON.stringify(portfolioContext)}
+
+---
+
+**User Question:** ${trimmedInput}`;
       
       const responseStream = await ai.models.generateContentStream({
         model: 'gemini-2.5-flash',
-        contents: `My portfolio context: ${JSON.stringify({projects: ['AetherCanvas AI', 'Synergy-Flow', 'Lade Notion', 'Lade Auth'], skills: ['TypeScript', 'React', 'Next.js', 'Node.js', 'AI', 'UX/UI Design']})}. User question: ${trimmedInput}`,
+        contents: prompt,
         config: {
           tools: [{googleSearch: {}}],
         },
