@@ -63,10 +63,16 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onSelectP
         try {
             const repoPath = new URL(project.githubUrl).pathname;
             const data = await fetchGitHubAPI(`/repos${repoPath}/commits?per_page=5`);
-            setCommits(data);
+            
+            // Add runtime type checking to ensure data integrity
+            if (Array.isArray(data)) {
+                setCommits(data as GitHubCommit[]);
+            } else {
+                throw new Error('API response for commits is not an array.');
+            }
         } catch (err: any) {
             console.error("Failed to fetch commits:", err);
-            setError('Could not load recent commits. This might be due to GitHub API rate limits. Please try again later.');
+            setError('Could not load recent commits. This might be due to GitHub API rate limits or an unexpected data format. Please try again later.');
         } finally {
             setIsLoading(false);
         }
