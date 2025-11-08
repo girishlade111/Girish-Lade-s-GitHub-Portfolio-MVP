@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Project, Stat, SocialLink } from './types';
 import { Github, Link, Star, GitCommit, GitPullRequest, AlertCircle, GitBranch, Instagram, Linkedin, Mail, Code } from 'lucide-react';
@@ -21,7 +20,8 @@ export const PROJECTS: Project[] = [
   {
     name: "AetherCanvas AI",
     description: "AetherCanvas: AI Image Generation Studio (Ideogram Style)",
-    tags: ["TypeScript", "Next.js", "AI"],
+    longDescription: "AetherCanvas is a full-stack AI image generation platform inspired by Ideogram, built with Next.js 14. It features a modern, intuitive interface for generating, editing, and managing AI-created images, complete with user authentication and advanced state management.",
+    tags: ["TypeScript", "Next.js", "AI", "Tailwind CSS", "Clerk Auth"],
     githubUrl: "https://github.com/girishlade111/AetherCanvas",
     stars: 29,
     forks: 4,
@@ -31,7 +31,7 @@ export const PROJECTS: Project[] = [
   {
     name: "Synergy-Flow",
     description: "An open-source project management tool designed for agile development workflows.",
-    tags: ["React", "Node.js", "MongoDB"],
+    tags: ["React", "Node.js", "MongoDB", "Express"],
     githubUrl: "https://github.com/girishlade111/Synergy-Flow",
     stars: 26,
     forks: 2,

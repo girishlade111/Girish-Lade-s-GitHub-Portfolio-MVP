@@ -1,8 +1,8 @@
-
 import React, { useState, useMemo } from 'react';
 import { PROJECTS } from '../constants';
 import type { Project } from '../types';
 import { Github, ExternalLink, Star, GitBranch, Clock, Search } from 'lucide-react';
+import ProjectModal from './ProjectModal';
 
 const timeAgo = (dateString: string): string => {
     const date = new Date(dateString);
@@ -37,16 +37,16 @@ const LanguageIndicator: React.FC<{ language: string }> = ({ language }) => {
     return <div style={{ backgroundColor: colorFromLanguage(language) }} className="w-3 h-3 rounded-full"></div>
 }
 
-const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
-  <div className="glass-card rounded-lg p-6 flex flex-col h-full transition-all duration-300 hover:border-[#00AEEF]/50 hover:-translate-y-1 group">
+const ProjectCard: React.FC<{ project: Project; onClick: () => void }> = ({ project, onClick }) => (
+  <button onClick={onClick} className="glass-card rounded-lg p-6 flex flex-col h-full transition-all duration-300 hover:border-[#00AEEF]/50 hover:-translate-y-1 group text-left w-full">
     <div className="flex justify-between items-start mb-4">
       <h3 className="text-xl font-bold text-white group-hover:text-[#00AEEF] transition-colors">{project.name}</h3>
       <div className="flex items-center gap-4">
-        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label={`${project.name} on GitHub`}>
+        <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-white transition-colors" aria-label={`${project.name} on GitHub`}>
           <Github className="w-5 h-5" />
         </a>
         {project.liveUrl && (
-          <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label={`${project.name} live demo`}>
+          <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className="text-gray-400 hover:text-white transition-colors" aria-label={`${project.name} live demo`}>
             <ExternalLink className="w-5 h-5" />
           </a>
         )}
@@ -78,12 +78,13 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
         </span>
       ))}
     </div>
-  </div>
+  </button>
 );
 
 const ProjectsSection: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const filters = useMemo(() => {
     const uniqueFilters = new Set<string>();
@@ -154,9 +155,11 @@ const ProjectsSection: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
         {filteredProjects.map((project) => (
-          <ProjectCard key={project.name} project={project} />
+          <ProjectCard key={project.name} project={project} onClick={() => setSelectedProject(project)} />
         ))}
       </div>
+
+      {selectedProject && <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />}
     </section>
   );
 };

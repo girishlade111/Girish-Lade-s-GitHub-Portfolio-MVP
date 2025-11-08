@@ -3,6 +3,7 @@ import React from 'react';
 export interface Project {
   name: string;
   description: string;
+  longDescription?: string;
   tags: string[];
   githubUrl: string;
   liveUrl?: string;
@@ -23,4 +24,16 @@ export interface SocialLink {
   icon: React.ReactNode;
   url: string;
   name: string;
+}
+
+export interface GitHubCommit {
+  sha: string;
+  commit: {
+    author: {
+      name: string;
+      date: string;
+    };
+    message: string;
+  };
+  html_url: string;
 }
