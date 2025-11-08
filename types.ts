@@ -16,6 +16,7 @@ export interface Stat {
   icon: React.ReactNode;
   value: string;
   label: string;
+  url?: string;
 }
 
 export interface SocialLink {

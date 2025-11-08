@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { Project, Stat, SocialLink } from './types';
 import { Github, Link, Star, GitCommit, GitPullRequest, AlertCircle, GitBranch, Instagram, Linkedin, Mail, Code } from 'lucide-react';
@@ -9,11 +8,11 @@ const iconProps = {
 };
 
 export const STATS: Stat[] = [
-  { icon: <Star {...iconProps} />, value: "588", label: "Stars Earned" },
+  { icon: <Star {...iconProps} />, value: "588", label: "Stars Earned", url: "https://github.com/girishlade111?tab=stars" },
   { icon: <GitCommit {...iconProps} />, value: "3.8K+", label: "Total Commits (Last Year)" },
   { icon: <GitPullRequest {...iconProps} />, value: "16", label: "PRs" },
   { icon: <AlertCircle {...iconProps} />, value: "42", label: "Issues" },
-  { icon: <GitBranch {...iconProps} />, value: "614", label: "Repositories" },
+  { icon: <GitBranch {...iconProps} />, value: "614", label: "Repositories", url: "https://github.com/girishlade111?tab=repositories" },
   { icon: <Github {...iconProps} />, value: "3,183+", label: "Contributions" },
 ];
 
@@ -22,7 +21,7 @@ export const PROJECTS: Project[] = [
     name: "AetherCanvas AI",
     description: "AetherCanvas: AI Image Generation Studio (Ideogram Style)",
     tags: ["TypeScript", "Next.js", "AI"],
-    githubUrl: "https://github.com/girishlade111/AetherCanvas-AI-Image-Generation-Studio-Ideogram-Style-",
+    githubUrl: "https://github.com/girishlade111/AetherCanvas-AI-Image-Generation-Studio-Ideogram-Style",
   },
   {
     name: "Synergy-Flow",

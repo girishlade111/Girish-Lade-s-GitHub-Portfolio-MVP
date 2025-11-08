@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { PROJECTS } from '../constants';
 import type { Project } from '../types';
-import { Github, ExternalLink, Star, GitBranch, Clock } from 'lucide-react';
+import { Github, ExternalLink, Star, GitBranch, Clock, AlertTriangle } from 'lucide-react';
+import { fetchGitHubAPI } from '../utils/api';
 
 const timeAgo = (dateString: string): string => {
     const date = new Date(dateString);
@@ -81,28 +81,55 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
   </div>
 );
 
+const ProjectCardSkeleton: React.FC = () => (
+    <div className="glass-card rounded-lg p-6 flex flex-col h-full animate-pulse">
+        <div className="flex justify-between items-start mb-4">
+            <div className="h-6 bg-gray-700/50 rounded w-3/4"></div>
+            <div className="h-5 w-5 bg-gray-700/50 rounded"></div>
+        </div>
+        <div className="h-4 bg-gray-700/50 rounded w-full mb-2"></div>
+        <div className="h-4 bg-gray-700/50 rounded w-5/6 mb-4"></div>
+        
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-400 mb-4">
+            <div className="h-4 bg-gray-700/50 rounded w-20"></div>
+            <div className="h-4 bg-gray-700/50 rounded w-16"></div>
+            <div className="h-4 bg-gray-700/50 rounded w-16"></div>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+            <div className="h-5 bg-gray-700/50 rounded-full w-16"></div>
+            <div className="h-5 bg-gray-700/50 rounded-full w-20"></div>
+            <div className="h-5 bg-gray-700/50 rounded-full w-24"></div>
+        </div>
+    </div>
+);
+
+
 const ProjectsSection: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [filters, setFilters] = useState<string[]>(['All']);
   const [activeFilter, setActiveFilter] = useState<string>('All');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProjects = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const projectPromises = PROJECTS.map(p => {
           const repoName = p.githubUrl.split('/').pop();
-          return fetch(`https://api.github.com/repos/girishlade111/${repoName}`).then(res => {
-            if (res.ok) return res.json();
-            return Promise.resolve(null);
-          });
+          return fetchGitHubAPI(`/repos/girishlade111/${repoName}`);
         });
 
-        const repos = await Promise.all(projectPromises);
+        const results = await Promise.allSettled(projectPromises);
 
+        let didAnyFail = false;
         const updatedProjects = PROJECTS.map((p, i) => {
-          const repo = repos[i];
-          if (repo) {
+          const result = results[i];
+          if (result.status === 'fulfilled') {
+            const repo = result.value;
             return {
               ...p,
               description: repo.description || p.description,
@@ -112,10 +139,18 @@ const ProjectsSection: React.FC = () => {
               updatedAt: repo.updated_at,
               liveUrl: repo.homepage || p.liveUrl,
             };
+          } else {
+            const reasonMessage = result.reason instanceof Error ? result.reason.message : String(result.reason);
+            console.error(`Could not fetch data for project "${p.name}". Reason:`, reasonMessage);
+            didAnyFail = true;
+            return p; // Fallback to the original static project data
           }
-          return p;
         });
 
+        if (didAnyFail) {
+          setError("Could not fetch latest data for some projects. Displaying cached versions where needed.");
+        }
+        
         setProjects(updatedProjects);
         setFilteredProjects(updatedProjects);
 
@@ -126,10 +161,14 @@ const ProjectsSection: React.FC = () => {
         });
         setFilters(['All', ...Array.from(uniqueFilters).sort()]);
 
-      } catch (error) {
-        console.error("Failed to fetch projects", error);
+      } catch (err) {
+        const error = err as Error;
+        console.error("An unexpected error occurred while fetching projects:", error.message);
+        setError("Could not fetch latest project data. Displaying cached versions.");
         setProjects(PROJECTS);
         setFilteredProjects(PROJECTS);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -153,26 +192,39 @@ const ProjectsSection: React.FC = () => {
         Pinned Projects
       </h2>
       
-      <div className="flex flex-wrap justify-center gap-2 mb-10">
-        {filters.map(filter => (
-          <button
-            key={filter}
-            onClick={() => setActiveFilter(filter)}
-            className={`px-4 py-1.5 rounded-full text-sm font-jetbrains transition-all duration-200 border ${
-              activeFilter === filter
-                ? 'bg-[#00AEEF] text-[#0D1117] border-[#00AEEF]'
-                : 'bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-[#00AEEF]/20 hover:border-[#00AEEF]/50'
-            }`}
-          >
-            {filter}
-          </button>
-        ))}
-      </div>
+      {error && (
+        <div className="glass-card rounded-lg p-4 mb-8 text-yellow-300/90 border border-yellow-400/30 flex items-center gap-3 w-full max-w-4xl" role="alert">
+          <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+
+      {!isLoading && filters.length > 1 && (
+        <div className="flex flex-wrap justify-center gap-2 mb-10">
+          {filters.map(filter => (
+            <button
+              key={filter}
+              onClick={() => setActiveFilter(filter)}
+              className={`px-4 py-1.5 rounded-full text-sm font-jetbrains transition-all duration-200 border ${
+                activeFilter === filter
+                  ? 'bg-[#00AEEF] text-[#0D1117] border-[#00AEEF]'
+                  : 'bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-[#00AEEF]/20 hover:border-[#00AEEF]/50'
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-        {filteredProjects.map((project) => (
-          <ProjectCard key={project.name} project={project} />
-        ))}
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => <ProjectCardSkeleton key={i} />)
+        ) : (
+          filteredProjects.map((project) => (
+            <ProjectCard key={project.name} project={project} />
+          ))
+        )}
       </div>
     </section>
   );

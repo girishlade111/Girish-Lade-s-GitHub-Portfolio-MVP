@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { fetchGitHubAPI } from '../utils/api';
 
 const ROLES = [
   "UX/UI Designer",
@@ -14,14 +15,17 @@ const HeroSection: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    fetch('https://api.github.com/users/girishlade111')
-      .then(res => res.json())
-      .then(data => {
+    const getAvatar = async () => {
+      try {
+        const data = await fetchGitHubAPI('/users/girishlade111');
         if (data.avatar_url) {
           setAvatarUrl(data.avatar_url);
         }
-      })
-      .catch(console.error);
+      } catch (error) {
+        console.error("Failed to fetch avatar:", error);
+      }
+    };
+    getAvatar();
   }, []);
 
   useEffect(() => {
