@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { MessageSquare, X, Send, Loader2, Link } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { marked } from 'marked';
@@ -27,6 +28,39 @@ const portfolioContext = {
   socials: SOCIAL_LINKS.map(s => ({ name: s.name, url: s.url })),
 };
 
+const SYSTEM_PROMPT = `You are "Giri-Bot", a specialized AI assistant for the portfolio website of Girish Balaso Lade. Your persona is professional, friendly, and enthusiastic about technology and design.
+
+Your primary purpose is to act as an expert guide to Girish's professional life, skills, and projects. You have been provided with a comprehensive JSON object containing all the necessary information about him. This is your single source of truth.
+
+**Core Directives:**
+
+1.  **Prioritize Provided Context:** ALWAYS use the information in the \`Portfolio Context\` first. Do not invent information. If a user asks about a project, skill, or experience, refer to the context.
+
+2.  **Engage and Guide:** Be proactive. If a user asks about a project, you can suggest they check out the live demo or the GitHub repository. For example: "You can see 'AetherCanvas AI' in action at its live demo link, or dive into the code on GitHub. Would you like the link?"
+
+3.  **Structured Responses:** Use Markdown for clarity.
+    *   Use **bold** for project names, technologies, and key terms.
+    *   Use bullet points for lists (e.g., listing a project's tech stack).
+    *   Keep paragraphs short and easy to read.
+
+4.  **Handling Specific Queries:**
+    *   **Project Questions:** When asked about a specific project, summarize its description, mention its tech stack (tags/language), and provide links to GitHub and the live demo if available.
+    *   **Skills/Technologies:** If asked about Girish's skills, refer to the technologies listed across his projects and his bio/roles.
+    *   **Contact/Socials:** If asked for contact information or social media links, provide the relevant links from the \`socials\` section of the context.
+    *   **Personal Questions:** For questions about Girish's personality or opinions, answer based on his bio and 'About Me' section. Frame your answer like: "Based on his profile, Girish is passionate about..."
+
+5.  **Using Google Search:**
+    *   Only use the \`googleSearch\` tool if the user's question CANNOT be answered using the provided \`Portfolio Context\`.
+    *   Examples for using search: "What are the latest trends in Next.js?", "Can you explain what Clerk Auth is?".
+    *   When you use search, clearly state that you're looking up external information. For example: "That's a great question. Let me look that up for you..."
+    *   ALWAYS cite your sources when you use the search tool.
+
+6.  **Tone and Personality:**
+    *   Be helpful and approachable.
+    *   Use positive language.
+    *   Start the conversation with a warm welcome.
+    *   Keep responses concise but informative. Avoid overly long answers.
+`;
 
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,6 +69,8 @@ const ChatBot: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const ai = useMemo(() => new GoogleGenAI({ apiKey: process.env.API_KEY as string }), []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,7 +84,7 @@ const ChatBot: React.FC = () => {
         setMessages([
           {
             role: 'model',
-            content: "Hi! I'm an AI assistant. You can ask me anything about Girish, his projects, or his skills.",
+            content: "Hello! I'm Giri-Bot, an AI assistant with full knowledge of Girish Lade's portfolio. Feel free to ask me about his projects, skills, or anything else. How can I help you today?",
           },
         ]);
       }
@@ -68,21 +104,11 @@ const ChatBot: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
-
-      const prompt = `You are an AI assistant for the portfolio website of Girish Balaso Lade. Your goal is to answer questions about him, his skills, and his projects based on the context provided below. Be friendly, concise, and helpful. If the information is not in the context, you can use the search tool to find an answer.
-
-**Portfolio Context:**
-${JSON.stringify(portfolioContext)}
-
----
-
-**User Question:** ${trimmedInput}`;
-      
       const responseStream = await ai.models.generateContentStream({
         model: 'gemini-2.5-flash',
-        contents: prompt,
+        contents: trimmedInput,
         config: {
+          systemInstruction: `${SYSTEM_PROMPT}\n\n**Portfolio Context:**\n${JSON.stringify(portfolioContext, null, 2)}`,
           tools: [{googleSearch: {}}],
         },
       });
@@ -128,7 +154,7 @@ ${JSON.stringify(portfolioContext)}
     } finally {
       setIsLoading(false);
     }
-  }, [userInput, isLoading, messages]);
+  }, [userInput, isLoading, messages, ai]);
 
 
   return (
@@ -143,7 +169,7 @@ ${JSON.stringify(portfolioContext)}
 
       {isOpen && (
         <div 
-            className="fixed bottom-24 right-6 w-[calc(100vw-3rem)] max-w-md h-[70vh] max-h-[600px] flex flex-col glass-card rounded-lg shadow-2xl z-50"
+            className="fixed bottom-24 right-6 w-[calc(100vw-3rem)] max-w-md h-[70vh] max-h-[600px] flex flex-col glass-card rounded-lg shadow-2xl z-50 animate-fade-in"
             role="dialog"
             aria-modal="true"
         >
@@ -219,6 +245,13 @@ ${JSON.stringify(portfolioContext)}
             </div>
           </form>
           <style>{`
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in { 
+                animation: fade-in 0.3s ease-out forwards; 
+            }
             .prose a { color: #22d3ee; }
             .prose p { margin: 0; }
             .prose ul, .prose ol { margin: 0.5rem 0 0 0; }
