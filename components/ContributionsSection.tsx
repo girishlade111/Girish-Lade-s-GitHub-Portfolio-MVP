@@ -1,8 +1,17 @@
 import React from 'react';
+import useIntersectionObserver from '../hooks/useIntersectionObserver';
 
 const ContributionsSection: React.FC = () => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.2 });
+
   return (
-    <section id="contributions" className="flex flex-col items-center w-full">
+    <section
+      ref={ref}
+      id="contributions"
+      className={`flex flex-col items-center w-full transition-all duration-700 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+    >
       <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center">
         GitHub Contributions
       </h2>

@@ -3,6 +3,7 @@ import { PROJECTS } from '../constants';
 import type { Project } from '../types';
 import { Github, ExternalLink, Star, GitBranch, Clock, Search } from 'lucide-react';
 import ProjectModal from './ProjectModal';
+import useIntersectionObserver from '../hooks/useIntersectionObserver';
 
 const timeAgo = (dateString: string): string => {
     const date = new Date(dateString);
@@ -85,6 +86,7 @@ const ProjectsSection: React.FC = () => {
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.1 });
 
   const filters = useMemo(() => {
     const uniqueFilters = new Set<string>();
@@ -118,7 +120,13 @@ const ProjectsSection: React.FC = () => {
   }, [activeFilter, searchTerm]);
 
   return (
-    <section id="projects" className="flex flex-col items-center">
+    <section
+      ref={ref}
+      id="projects"
+      className={`flex flex-col items-center transition-all duration-700 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+    >
       <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center">
         Pinned Projects
       </h2>

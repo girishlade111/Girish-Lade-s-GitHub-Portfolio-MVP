@@ -2,6 +2,7 @@
 import React from 'react';
 import { STATS } from '../constants';
 import type { Stat } from '../types';
+import useIntersectionObserver from '../hooks/useIntersectionObserver';
 
 const StatCard: React.FC<{ stat: Stat }> = ({ stat }) => {
   const cardClasses = "glass-card rounded-lg p-5 flex flex-col items-center justify-center text-center transition-all duration-300 hover:border-[#00AEEF]/50 hover:-translate-y-1";
@@ -26,8 +27,16 @@ const StatCard: React.FC<{ stat: Stat }> = ({ stat }) => {
 };
 
 const AboutSection: React.FC = () => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.2 });
+
   return (
-    <section id="about" className="flex flex-col items-center">
+    <section
+      ref={ref}
+      id="about"
+      className={`flex flex-col items-center transition-all duration-700 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      }`}
+    >
       <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 text-center">
         About Me
       </h2>

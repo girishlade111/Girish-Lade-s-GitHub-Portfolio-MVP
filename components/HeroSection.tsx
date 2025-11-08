@@ -7,6 +7,11 @@ const ROLES = [
   "Startup Founder",
 ];
 
+// Animation timing constants for easy adjustment
+const TYPING_INTERVAL = 150;
+const DELETING_INTERVAL = 100;
+const PAUSE_DURATION = 2000;
+
 const HeroSection: React.FC = () => {
   const [roleIndex, setRoleIndex] = useState(0);
   const [displayedRole, setDisplayedRole] = useState("");
@@ -14,24 +19,31 @@ const HeroSection: React.FC = () => {
   const avatarUrl = "https://github.com/girishlade111.png";
 
   useEffect(() => {
-    const handleTyping = () => {
-      const fullRole = ROLES[roleIndex];
-      if (isDeleting) {
-        setDisplayedRole(fullRole.substring(0, displayedRole.length - 1));
-      } else {
-        setDisplayedRole(fullRole.substring(0, displayedRole.length + 1));
-      }
+    const fullRole = ROLES[roleIndex];
+    let timer: number;
 
-      if (!isDeleting && displayedRole === fullRole) {
-        setTimeout(() => setIsDeleting(true), 2000);
-      } else if (isDeleting && displayedRole === "") {
-        setIsDeleting(false);
-        setRoleIndex((prevIndex) => (prevIndex + 1) % ROLES.length);
-      }
-    };
-
-    const typingSpeed = isDeleting ? 100 : 150;
-    const timer = setTimeout(handleTyping, typingSpeed);
+    // State 1: Pausing after a role is fully typed
+    if (!isDeleting && displayedRole === fullRole) {
+      timer = window.setTimeout(() => {
+        setIsDeleting(true);
+      }, PAUSE_DURATION);
+    } 
+    // State 2: Switching to the next role after deleting is complete
+    else if (isDeleting && displayedRole === "") {
+      setIsDeleting(false);
+      setRoleIndex((prev) => (prev + 1) % ROLES.length);
+    } 
+    // State 3: Typing or deleting one character at a time
+    else {
+      timer = window.setTimeout(() => {
+        setDisplayedRole(current => {
+          if (isDeleting) {
+            return fullRole.substring(0, current.length - 1);
+          }
+          return fullRole.substring(0, current.length + 1);
+        });
+      }, isDeleting ? DELETING_INTERVAL : TYPING_INTERVAL);
+    }
 
     return () => clearTimeout(timer);
   }, [displayedRole, isDeleting, roleIndex]);
