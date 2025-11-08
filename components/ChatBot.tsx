@@ -62,6 +62,13 @@ Your primary purpose is to act as an expert guide to Girish's professional life,
     *   Keep responses concise but informative. Avoid overly long answers.
 `;
 
+const initialSuggestions = [
+  "Tell me about 'AetherCanvas AI'",
+  "List projects tagged 'Next.js'",
+  "What are Girish's skills?",
+  "How can I contact him?",
+];
+
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -93,14 +100,12 @@ const ChatBot: React.FC = () => {
 
   useEffect(scrollToBottom, [messages]);
 
-  const handleSendMessage = useCallback(async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    const trimmedInput = userInput.trim();
+  const sendAndProcessMessage = useCallback(async (message: string) => {
+    const trimmedInput = message.trim();
     if (!trimmedInput || isLoading) return;
 
     const newMessages: ChatMessage[] = [...messages, { role: 'user', content: trimmedInput }];
     setMessages(newMessages);
-    setUserInput('');
     setIsLoading(true);
 
     try {
@@ -154,7 +159,19 @@ const ChatBot: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [userInput, isLoading, messages, ai]);
+  }, [isLoading, messages, ai]);
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (userInput.trim()) {
+        sendAndProcessMessage(userInput);
+        setUserInput('');
+    }
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    sendAndProcessMessage(suggestion);
+  };
 
 
   return (
@@ -223,27 +240,45 @@ const ChatBot: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-700/50 flex-shrink-0">
-            <div className="relative">
-              <input
-                ref={inputRef}
-                type="text"
-                value={userInput}
-                onChange={(e) => setUserInput(e.target.value)}
-                placeholder="Ask a question..."
-                className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-4 pr-12 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00AEEF]/50 transition-colors duration-300"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#00AEEF] disabled:text-gray-600 transition-colors"
-                disabled={isLoading || !userInput.trim()}
-                aria-label="Send message"
-              >
-                {isLoading ? <Loader2 className="animate-spin" /> : <Send />}
-              </button>
-            </div>
-          </form>
+          <div className="p-4 border-t border-gray-700/50 flex-shrink-0">
+            {messages.length === 1 && !isLoading && (
+                <div className="mb-4">
+                    <p className="text-xs text-gray-400 mb-2 font-jetbrains">Suggestions</p>
+                    <div className="flex flex-wrap gap-2">
+                        {initialSuggestions.map((suggestion) => (
+                            <button
+                                key={suggestion}
+                                onClick={() => handleSuggestionClick(suggestion)}
+                                className="px-3 py-1.5 rounded-full text-xs font-jetbrains transition-all duration-200 border bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-[#00AEEF]/20 hover:border-[#00AEEF]/50"
+                            >
+                                {suggestion}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+            <form onSubmit={handleFormSubmit}>
+              <div className="relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  placeholder="Ask a question..."
+                  className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-4 pr-12 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00AEEF]/50 transition-colors duration-300"
+                  disabled={isLoading}
+                />
+                <button
+                  type="submit"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#00AEEF] disabled:text-gray-600 transition-colors"
+                  disabled={isLoading || !userInput.trim()}
+                  aria-label="Send message"
+                >
+                  {isLoading ? <Loader2 className="animate-spin" /> : <Send />}
+                </button>
+              </div>
+            </form>
+          </div>
           <style>{`
             @keyframes fade-in {
                 from { opacity: 0; transform: translateY(10px); }
