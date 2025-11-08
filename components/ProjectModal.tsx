@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { X, Github, ExternalLink, Star, GitBranch, GitCommit, Loader2, AlertTriangle } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { X, Github, ExternalLink, Star, GitBranch, GitCommit, Loader2, AlertTriangle, Link2 } from 'lucide-react';
 import type { Project, GitHubCommit } from '../types';
 import { fetchGitHubAPI } from '../utils/api';
+import { PROJECTS } from '../constants';
 
 const timeAgo = (dateString: string): string => {
     if (!dateString) return '';
@@ -29,7 +30,13 @@ const timeAgo = (dateString: string): string => {
     return `${Math.floor(seconds)} seconds ago`;
 };
 
-const ProjectModal: React.FC<{ project: Project; onClose: () => void }> = ({ project, onClose }) => {
+interface ProjectModalProps {
+    project: Project;
+    onClose: () => void;
+    onSelectProject: (project: Project) => void;
+}
+
+const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onSelectProject }) => {
     const [commits, setCommits] = useState<GitHubCommit[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -50,6 +57,8 @@ const ProjectModal: React.FC<{ project: Project; onClose: () => void }> = ({ pro
     }, [handleKeyDown]);
 
     const fetchCommits = useCallback(async () => {
+        setIsLoading(true);
+        setError(null);
         try {
             const repoPath = new URL(project.githubUrl).pathname;
             const data = await fetchGitHubAPI(`/repos${repoPath}/commits?per_page=5`);
@@ -64,6 +73,29 @@ const ProjectModal: React.FC<{ project: Project; onClose: () => void }> = ({ pro
     useEffect(() => {
         fetchCommits();
     }, [fetchCommits]);
+
+    const relatedProjects = useMemo(() => {
+        const currentTags = new Set(project.tags);
+        const currentLang = project.language;
+
+        return PROJECTS
+            .filter(p => p.name !== project.name) // Exclude self
+            .map(p => {
+                let score = 0;
+                if (p.language === currentLang) {
+                    score += 2; // Higher score for same language
+                }
+                p.tags.forEach(tag => {
+                    if (currentTags.has(tag)) {
+                        score += 1;
+                    }
+                });
+                return { ...p, score };
+            })
+            .filter(p => p.score > 0) // Only include projects with some relation
+            .sort((a, b) => b.score - a.score) // Sort by score
+            .slice(0, 2); // Take top 2
+    }, [project]);
 
     return (
         <div 
@@ -103,7 +135,7 @@ const ProjectModal: React.FC<{ project: Project; onClose: () => void }> = ({ pro
                         </div>
                     </div>
 
-                    <div>
+                    <div className="mb-6">
                         <h4 className="font-bold text-white mb-4">Recent Commits</h4>
                         {isLoading && (
                             <div className="flex items-center justify-center p-8 text-gray-400">
@@ -123,7 +155,7 @@ const ProjectModal: React.FC<{ project: Project; onClose: () => void }> = ({ pro
                                     <li key={commit.sha} className="flex gap-4">
                                         <div className="text-[#00AEEF] pt-1"><GitCommit className="w-5 h-5" /></div>
                                         <div>
-                                            <p className="text-white truncate" title={commit.commit.message}>{commit.commit.message}</p>
+                                            <p className="text-white truncate" title={commit.commit.message}>{commit.commit.message.split('\n')[0]}</p>
                                             <p className="text-gray-400 text-sm">
                                                 <a href={commit.html_url} target="_blank" rel="noopener noreferrer" className="hover:underline">{commit.sha.substring(0, 7)}</a>
                                                 {' '}by {commit.commit.author.name} &bull; {timeAgo(commit.commit.author.date)}
@@ -134,10 +166,28 @@ const ProjectModal: React.FC<{ project: Project; onClose: () => void }> = ({ pro
                             </ul>
                         )}
                     </div>
+
+                    {relatedProjects.length > 0 && (
+                        <div>
+                            <h4 className="font-bold text-white mb-4">Related Projects</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {relatedProjects.map(related => (
+                                    <button
+                                        key={related.name}
+                                        onClick={() => onSelectProject(related)}
+                                        className="p-4 bg-gray-800/50 border border-gray-700 rounded-lg hover:border-[#00AEEF]/50 transition-all text-left group"
+                                    >
+                                        <p className="font-bold text-white group-hover:text-[#00AEEF] transition-colors">{related.name}</p>
+                                        <p className="text-sm text-gray-400 mt-1 truncate">{related.description}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
                  <footer className="p-4 md:p-6 border-t border-gray-700/50 flex-shrink-0 flex items-center justify-end gap-4">
                     <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 bg-gray-700/50 hover:bg-gray-700 rounded-md text-white transition-colors text-sm font-medium">
-                        <Github className="w-4 h-4" /> GitHub
+                        <Github className="w-4 h-4" /> View on GitHub
                     </a>
                     {project.liveUrl && (
                         <a href={project.liveUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-4 py-2 bg-[#00AEEF]/90 hover:bg-[#00AEEF] rounded-md text-white transition-colors text-sm font-medium">

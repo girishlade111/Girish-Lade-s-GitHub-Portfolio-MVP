@@ -159,7 +159,7 @@ const ProjectsSection: React.FC = () => {
         ))}
       </div>
 
-      {selectedProject && <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />}
+      {selectedProject && <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} onSelectProject={setSelectedProject} />}
     </section>
   );
 };
