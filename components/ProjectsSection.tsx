@@ -82,7 +82,10 @@ const ProjectCard: React.FC<{ project: Project }> = ({ project }) => (
 );
 
 const ProjectsSection: React.FC = () => {
-  const [projects, setProjects] = useState<Project[]>(PROJECTS);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
+  const [filters, setFilters] = useState<string[]>(['All']);
+  const [activeFilter, setActiveFilter] = useState<string>('All');
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -112,22 +115,62 @@ const ProjectsSection: React.FC = () => {
           }
           return p;
         });
+
         setProjects(updatedProjects);
+        setFilteredProjects(updatedProjects);
+
+        const uniqueFilters = new Set<string>();
+        updatedProjects.forEach(p => {
+            if (p.language) uniqueFilters.add(p.language);
+            p.tags.forEach(t => uniqueFilters.add(t));
+        });
+        setFilters(['All', ...Array.from(uniqueFilters).sort()]);
+
       } catch (error) {
         console.error("Failed to fetch projects", error);
+        setProjects(PROJECTS);
+        setFilteredProjects(PROJECTS);
       }
     };
 
     fetchProjects();
   }, []);
 
+  useEffect(() => {
+    if (activeFilter === 'All') {
+      setFilteredProjects(projects);
+    } else {
+      const newFilteredProjects = projects.filter(p => 
+        p.tags.includes(activeFilter) || p.language === activeFilter
+      );
+      setFilteredProjects(newFilteredProjects);
+    }
+  }, [activeFilter, projects]);
+
   return (
     <section id="projects" className="flex flex-col items-center">
-      <h2 className="text-3xl md:text-4xl font-bold text-white mb-12 text-center">
+      <h2 className="text-3xl md:text-4xl font-bold text-white mb-8 text-center">
         Pinned Projects
       </h2>
+      
+      <div className="flex flex-wrap justify-center gap-2 mb-10">
+        {filters.map(filter => (
+          <button
+            key={filter}
+            onClick={() => setActiveFilter(filter)}
+            className={`px-4 py-1.5 rounded-full text-sm font-jetbrains transition-all duration-200 border ${
+              activeFilter === filter
+                ? 'bg-[#00AEEF] text-[#0D1117] border-[#00AEEF]'
+                : 'bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-[#00AEEF]/20 hover:border-[#00AEEF]/50'
+            }`}
+          >
+            {filter}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-        {projects.map((project) => (
+        {filteredProjects.map((project) => (
           <ProjectCard key={project.name} project={project} />
         ))}
       </div>
