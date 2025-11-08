@@ -161,12 +161,19 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onSelectP
                             <ul className="space-y-4">
                                 {commits.map(commit => (
                                     <li key={commit.sha} className="flex gap-4">
-                                        <div className="text-[#00AEEF] pt-1"><GitCommit className="w-5 h-5" /></div>
-                                        <div>
-                                            <p className="text-white truncate" title={commit.commit.message}>{commit.commit.message.split('\n')[0]}</p>
-                                            <p className="text-gray-400 text-sm">
-                                                <a href={commit.html_url} target="_blank" rel="noopener noreferrer" className="hover:underline">{commit.sha.substring(0, 7)}</a>
-                                                {' '}by {commit.commit.author.name} &bull; {timeAgo(commit.commit.author.date)}
+                                        <div className="text-[#00AEEF] pt-1 flex-shrink-0"><GitCommit className="w-5 h-5" /></div>
+                                        <div className="flex-1 min-w-0">
+                                            <a
+                                                href={commit.html_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                title={commit.commit.message}
+                                                className="block text-white truncate hover:text-[#00AEEF] hover:underline transition-colors"
+                                            >
+                                                {commit.commit.message.split('\n')[0]}
+                                            </a>
+                                            <p className="text-sm text-gray-400">
+                                                <span className="font-semibold text-gray-300">{commit.commit.author.name}</span> committed {timeAgo(commit.commit.author.date)}
                                             </p>
                                         </div>
                                     </li>
