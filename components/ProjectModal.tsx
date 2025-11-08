@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { X, Github, ExternalLink, Star, GitBranch, GitCommit, Loader2, AlertTriangle, Link2 } from 'lucide-react';
 import type { Project, GitHubCommit } from '../types';
@@ -64,7 +65,8 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ project, onClose, onSelectP
             const data = await fetchGitHubAPI(`/repos${repoPath}/commits?per_page=5`);
             setCommits(data);
         } catch (err: any) {
-            setError(err.message || 'Could not fetch commit history.');
+            console.error("Failed to fetch commits:", err);
+            setError('Could not load recent commits. This might be due to GitHub API rate limits. Please try again later.');
         } finally {
             setIsLoading(false);
         }
