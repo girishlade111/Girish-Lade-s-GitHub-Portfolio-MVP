@@ -1,4 +1,3 @@
-
 import React from 'react';
 import HeroSection from './components/HeroSection';
 import AboutSection from './components/AboutSection';
@@ -6,6 +5,7 @@ import ProjectsSection from './components/ProjectsSection';
 import ContributionsSection from './components/ContributionsSection';
 import Socials from './components/Socials';
 import Footer from './components/Footer';
+import ChatBot from './components/ChatBot';
 
 const App: React.FC = () => {
   return (
@@ -21,6 +21,7 @@ const App: React.FC = () => {
           <Footer />
         </div>
       </main>
+      <ChatBot />
     </div>
   );
 };
