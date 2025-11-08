@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PROJECTS } from '../constants';
 import type { Project } from '../types';
@@ -106,6 +107,7 @@ const ProjectsSection: React.FC = () => {
               forks: repo.forks_count,
               language: repo.language,
               updatedAt: repo.updated_at,
+              liveUrl: repo.homepage || p.liveUrl,
             };
           }
           return p;

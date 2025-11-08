@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Project, Stat, SocialLink } from './types';
 import { Github, Link, Star, GitCommit, GitPullRequest, AlertCircle, GitBranch, Instagram, Linkedin, Mail, Code } from 'lucide-react';
@@ -40,18 +41,21 @@ export const PROJECTS: Project[] = [
     description: "A digital agency website showcasing modern design and animation techniques.",
     tags: ["Gatsby", "Framer Motion", "Contentful"],
     githubUrl: "https://github.com/girishlade111/Lade-Studio",
+    liveUrl: "https://ladestudio.vercel.app/",
   },
   {
     name: "Lade Stack AI Dev Hub",
     description: "A developer hub with AI-powered tools, resources, and community forums.",
     tags: ["Next.js", "Supabase", "OpenAI"],
     githubUrl: "https://github.com/girishlade111/lade-stack-ai-dev-hub",
+    liveUrl: "https://www.ladestack.in/",
   },
   {
     name: "Artify",
     description: "An AI-powered image generation and editing tool using modern APIs.",
     tags: ["React", "Cloudinary AI", "Tailwind CSS"],
     githubUrl: "https://github.com/girishlade111/Artify",
+    liveUrl: "https://artify-gules.vercel.app/",
   },
 ];
 
