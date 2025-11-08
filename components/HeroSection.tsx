@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Download } from 'lucide-react';
 
 const ROLES = [
   "UX/UI Designer",
@@ -63,10 +64,19 @@ const HeroSection: React.FC = () => {
       <p className="text-lg md:text-xl text-gray-400 max-w-2xl mb-4">
         UX/UI Designer & Developer obsessed with building stuff people actually use... for free.
       </p>
-      <div className="text-xl md:text-2xl font-jetbrains text-[#00AEEF] h-8">
+      <div className="text-xl md:text-2xl font-jetbrains text-[#00AEEF] h-8 mb-8">
         <span>{displayedRole}</span>
         <span className="border-r-2 border-[#00AEEF] typewriter-cursor" aria-hidden="true"></span>
       </div>
+      <a
+        href="https://jottacloud.com/s/393f4ef74c70cf241a5b9a61e2472a7910d"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 bg-[#00AEEF] text-white font-bold py-3 px-6 rounded-lg transition-all duration-300 hover:bg-[#00AEEF]/80 transform hover:scale-105"
+      >
+        <Download className="w-5 h-5" />
+        Download Resume
+      </a>
     </section>
   );
 };
