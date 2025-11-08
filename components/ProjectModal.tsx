@@ -49,20 +49,21 @@ const ProjectModal: React.FC<{ project: Project; onClose: () => void }> = ({ pro
         };
     }, [handleKeyDown]);
 
-    useEffect(() => {
-        const fetchCommits = async () => {
-            try {
-                const repoPath = new URL(project.githubUrl).pathname;
-                const data = await fetchGitHubAPI(`/repos${repoPath}/commits?per_page=5`);
-                setCommits(data);
-            } catch (err: any) {
-                setError(err.message || 'Could not fetch commit history.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchCommits();
+    const fetchCommits = useCallback(async () => {
+        try {
+            const repoPath = new URL(project.githubUrl).pathname;
+            const data = await fetchGitHubAPI(`/repos${repoPath}/commits?per_page=5`);
+            setCommits(data);
+        } catch (err: any) {
+            setError(err.message || 'Could not fetch commit history.');
+        } finally {
+            setIsLoading(false);
+        }
     }, [project.githubUrl]);
+
+    useEffect(() => {
+        fetchCommits();
+    }, [fetchCommits]);
 
     return (
         <div 
