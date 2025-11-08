@@ -88,23 +88,20 @@ const ProjectsSection: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [ref, isVisible] = useIntersectionObserver({ threshold: 0.1 });
 
-  const filters = useMemo(() => {
-    const uniqueFilters = new Set<string>();
+  const languageFilters = useMemo(() => {
+    const uniqueLanguages = new Set<string>();
     PROJECTS.forEach(p => {
-        if (p.language) uniqueFilters.add(p.language);
-        p.tags.forEach(t => uniqueFilters.add(t));
+        if (p.language) uniqueLanguages.add(p.language);
     });
-    return ['All', ...Array.from(uniqueFilters).sort()];
+    return ['All', ...Array.from(uniqueLanguages).sort()];
   }, []);
 
   const filteredProjects = useMemo(() => {
     let projectsToFilter = PROJECTS;
 
-    // Apply category filter
+    // Apply language filter
     if (activeFilter !== 'All') {
-      projectsToFilter = projectsToFilter.filter(p => 
-        p.tags.includes(activeFilter) || p.language === activeFilter
-      );
+      projectsToFilter = projectsToFilter.filter(p => p.language === activeFilter);
     }
     
     // Apply search filter
@@ -142,9 +139,9 @@ const ProjectsSection: React.FC = () => {
             className="w-full bg-gray-800/50 border border-gray-700 rounded-lg pl-12 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#00AEEF]/50 transition-colors duration-300"
           />
         </div>
-        {filters.length > 1 && (
+        {languageFilters.length > 1 && (
           <div className="flex flex-wrap justify-center gap-2">
-            {filters.map(filter => (
+            {languageFilters.map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
